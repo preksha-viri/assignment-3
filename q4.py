@@ -21,23 +21,17 @@ import random
 import time
 from collections import deque, defaultdict
 from typing import Dict, List, Tuple, Set
-
-# memory_profiler import (used by profiling functions)
 try:
     from memory_profiler import memory_usage
 except Exception:
     memory_usage = None
 
-# matplotlib for optional plotting
 try:
     import matplotlib.pyplot as plt
 except Exception:
     plt = None
 
 
-# -------------------------
-# Problem 1: Friend Suggestion
-# -------------------------
 def suggest_friends_bfs(graph: Dict[str, List[str]], user: str) -> List[str]:
     """
     Suggest friends for `user` by finding friends-of-friends not already friends.
@@ -64,10 +58,6 @@ def suggest_friends_bfs(graph: Dict[str, List[str]], user: str) -> List[str]:
 
     return sorted(suggestions)
 
-
-# -------------------------
-# Problem 2: Bellman-Ford
-# -------------------------
 def bellman_ford(edges: List[Tuple[str, str, float]], vertices: List[str], source: str):
     """
     Return dict of shortest distances from source to each vertex, or
@@ -92,10 +82,6 @@ def bellman_ford(edges: List[Tuple[str, str, float]], vertices: List[str], sourc
 
     return dist
 
-
-# -------------------------
-# Problem 3: Dijkstra (min-heap)
-# -------------------------
 def dijkstra(graph: Dict[str, List[Tuple[str, float]]], source: str):
     """
     graph: adjacency list {node: [(neighbor, weight), ...]}
@@ -116,11 +102,6 @@ def dijkstra(graph: Dict[str, List[Tuple[str, float]]], source: str):
                 heapq.heappush(pq, (nd, neigh))
 
     return dist
-
-
-# -------------------------
-# Problem 4: MST - Prim's and Kruskal's
-# -------------------------
 def prim_mst(graph: Dict[str, List[Tuple[str, float]]], start: str = None):
     """
     Prim's algorithm using a min-heap.
@@ -156,8 +137,6 @@ def prim_mst(graph: Dict[str, List[Tuple[str, float]]], start: str = None):
 
     return total_cost, mst_edges
 
-
-# Kruskal's with Union-Find
 class UnionFind:
     def __init__(self, elements):
         self.parent = {e: e for e in elements}
@@ -197,35 +176,30 @@ def kruskal_mst(edge_list: List[Tuple[str, str, float]], vertices: List[str]):
         if uf.union(u, v):
             mst_edges.append((u, v, w))
             total += w
-    # ensure MST spans all vertices
     roots = set(uf.find(v) for v in vertices)
     if len(roots) > 1:
         raise ValueError("Graph not connected - MST not possible for all nodes")
     return total, mst_edges
 
-
-# -------------------------
-# Profiling & Experimental Utilities
-# -------------------------
 def profile_function(func, *args, **kwargs):
     """
     Profiles time (seconds) and peak memory (MB) for a single function call.
     Returns: (result, elapsed_time_seconds, peak_memory_mb or None)
     Requires memory_profiler to be installed for memory measurement.
     """
-    # Time
+
     t0 = time.perf_counter()
 
     if memory_usage is not None:
-        # memory_usage((func, args, kwargs), retval=True) -> (mem_samples, retval)
+      
         mem_samples, retval = memory_usage((func, args, kwargs), retval=True, interval=0.01, timeout=None)
         t1 = time.perf_counter()
         elapsed = t1 - t0
-        # mem_samples is list of memory usage measurements (MB) during execution
+       
         peak = max(mem_samples) if mem_samples else None
         return retval, elapsed, peak
     else:
-        # Fallback: no memory profiling installed
+        
         retval = func(*args, **kwargs)
         t1 = time.perf_counter()
         elapsed = t1 - t0
@@ -242,15 +216,15 @@ def experimental_profile_plot():
         print("matplotlib not installed. Skipping plotting.")
         return
 
-    sizes = [50, 100, 200, 400]  # keep small for runtime safety
+    sizes = [50, 100, 200, 400]
     prim_times = []
     kruskal_times = []
     dijkstra_times = []
 
     for n in sizes:
-        # create random connected graph
+       
         nodes = [f"N{i}" for i in range(n)]
-        # ensure connectivity by building a chain
+        
         adj = {node: [] for node in nodes}
         edges = []
         for i in range(n - 1):
@@ -258,7 +232,7 @@ def experimental_profile_plot():
             adj[nodes[i]].append((nodes[i + 1], w))
             adj[nodes[i + 1]].append((nodes[i], w))
             edges.append((nodes[i], nodes[i + 1], w))
-        # add some random extra edges
+     
         extra = max(1, n // 5)
         for _ in range(extra):
             u = random.choice(nodes)
@@ -270,15 +244,14 @@ def experimental_profile_plot():
             adj[v].append((u, w))
             edges.append((u, v, w))
 
-        # Profile Prim
         _, t_prim, _ = profile_function(lambda: prim_mst(adj))
         prim_times.append(t_prim)
 
-        # Profile Kruskal
+       
         _, t_kruskal, _ = profile_function(lambda: kruskal_mst(edges, nodes))
         kruskal_times.append(t_kruskal)
 
-        # Prepare a weighted directed graph for Dijkstra (positive weights)
+
         gdir = {node: [] for node in nodes}
         for u, v, w in edges:
             gdir[u].append((v, w))
@@ -289,7 +262,7 @@ def experimental_profile_plot():
 
         print(f"Done profiling for n={n}: prim={t_prim:.4f}s kruskal={t_kruskal:.4f}s dijkstra={t_dij:.4f}s")
 
-    # Plot times
+    
     plt.figure(figsize=(8, 5))
     plt.plot(sizes, prim_times, label="Prim's")
     plt.plot(sizes, kruskal_times, label="Kruskal's")
@@ -303,9 +276,7 @@ def experimental_profile_plot():
     plt.show()
 
 
-# -------------------------
-# Example Sample Data & Menu
-# -------------------------
+
 def example_run_all():
     print("\n=== Problem 1: Friend Suggestion (BFS) ===")
     social_graph = {
@@ -347,7 +318,7 @@ def example_run_all():
     print("Dijkstra distances from A:", dij)
 
     print("\n=== Problem 4: MST (Prim & Kruskal) ===")
-    # Use an undirected graph
+   
     undirected_adj = {
         'A': [('B', 1), ('C', 3)],
         'B': [('A', 1), ('C', 1), ('D', 4)],
@@ -358,7 +329,7 @@ def example_run_all():
     print("Prim MST total cost:", prim_total)
     print("Prim MST edges:", prim_edges)
 
-    # convert adj to edge list (undirected)
+    
     edges = []
     seen = set()
     for u, neighs in undirected_adj.items():
@@ -443,3 +414,4 @@ if __name__ == "__main__":
     print(" - Make sure to install dependencies listed at the top of the file.")
     print(" - For memory profiling, install `memory_profiler` (pip install memory_profiler).")
     main_menu()
+
